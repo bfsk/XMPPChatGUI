@@ -87,7 +87,7 @@ public class TcpTransportClient implements IFSM, Runnable, Cloneable {
 	private void sendToStream(String msg, OutputStream output) throws Exception{
 		char eof = (char)(0);
 		msg = msg + eof;
-		var byts = msg.getBytes();
+		byte[] byts = msg.getBytes();
 		output.write(byts,0, byts.length);
 		output.flush();
 	}
@@ -179,7 +179,7 @@ public class TcpTransportClient implements IFSM, Runnable, Cloneable {
 				String fromAddress = sockaddr.getAddress().toString().replace("/","");
 				fromAddress += ":" + sockaddr.getPort();
 				IMessage receivedMsg = new Message();
-				var bytes = recString.getBytes();
+				byte[] bytes = recString.getBytes();
 				receivedMsg.parseTransportMessage(bytes, bytes.length);
 				receivedMsg.setFromId(id);
 				receivedMsg.setToId(receiver.getId());
