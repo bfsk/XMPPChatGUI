@@ -7,18 +7,19 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 
 import java.util.ArrayList;
 
 public class MainGUIController implements IController {
     XMPPChatClient client;
     public ListView roomList;
-
-    public ObservableList<String> listOfRooms = FXCollections.observableArrayList();
+    public ListView joinedRoomsList;
+    public TextField message;
+    public TextArea chatBox;
     @FXML
     public void initialize(){
-        roomList.setItems(listOfRooms);
-
     }
     @Override
     public IController getController() {
@@ -53,14 +54,42 @@ public class MainGUIController implements IController {
         });
 
     }
-    int x = 0;
-    public void test(ActionEvent actionEvent) {
-        roomList.getItems().add("test" + x);
-        x++;
-        System.out.println(roomList.getItems());
+    @Override
+    public void updateJoinedRoomList(ArrayList<String> rmlst) {
+        System.out.println("CAC");
+        Platform.runLater(()->{
+            joinedRoomsList.getItems().clear();
+            joinedRoomsList.getItems().addAll(rmlst);
+            System.out.println("ASDAD");
+        });
+    }
+    public void incomingMessage(String room, String msg){
+        Platform.runLater(()->{
+            chatBox.appendText("\n" + msg);
+        });
+    }
+    public void sendMsg(ActionEvent actionEvent) {
+        String selectedRoom = (String)joinedRoomsList.getSelectionModel().getSelectedItem();
+        if(selectedRoom != null){
+            client.sendMessage(selectedRoom, message.getText());
+            message.setText("");
+        }
     }
     public void refreshRooms(ActionEvent actionEvent) {
         client.refreshRoomList();
     }
+    public void joinRoom(ActionEvent actionEvent) {
+        String selectedRoom = (String)roomList.getSelectionModel().getSelectedItem();
+        if(selectedRoom != null){
+            client.joinRoom(selectedRoom);
+        }
+    }
+    public void leaveRoom(ActionEvent actionEvent) {
+        String selectedRoom = (String)joinedRoomsList.getSelectionModel().getSelectedItem();
+        if(selectedRoom != null){
+            client.leaveRoom(selectedRoom);
+        }
+    }
+
 
 }

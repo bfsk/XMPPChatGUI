@@ -71,19 +71,10 @@ public class LoginController implements IController {
         displayAlert(msg);
     }
     public void login(ActionEvent actionEvent) {
-        Message tempMsg = new Message(Message.Types.LOGIN);
-        tempMsg.setToId(0);
-        tempMsg.addParam(Message.Params.USERNAME, usernameBox.getText());
-        tempMsg.addParam(Message.Params.PASSWORD, passwordBox.getText());
-        dis.addMessage(tempMsg);
-
+        client.login(usernameBox.getText(), passwordBox.getText());
     }
     public void register(ActionEvent actionEvent) {
-        Message tempMsg = new Message(Message.Types.REGISTER);
-        tempMsg.setToId(0);
-        tempMsg.addParam(Message.Params.USERNAME, usernameBox.getText());
-        tempMsg.addParam(Message.Params.PASSWORD, passwordBox.getText());
-        dis.addMessage(tempMsg);
+        client.register(usernameBox.getText(), passwordBox.getText());
     }
 
     public void displayAlert(String msg){
@@ -95,7 +86,8 @@ public class LoginController implements IController {
             alert.showAndWait().ifPresent(rs -> {
             });
         });
-
-
     }
+    @Override
+    public void updateJoinedRoomList(ArrayList<String> l){}
+    public void incomingMessage(String room, String msg){}
 }

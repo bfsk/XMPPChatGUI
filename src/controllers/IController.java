@@ -12,4 +12,6 @@ public interface IController {
     public void loginFail(String msg);
     public void setClient(XMPPChatClient client);
     public void updateRoomList(ArrayList<String> list);
+    public void updateJoinedRoomList(ArrayList<String> list);
+    public void incomingMessage(String room, String msg);
 }

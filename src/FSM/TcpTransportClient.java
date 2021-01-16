@@ -120,8 +120,12 @@ public class TcpTransportClient implements IFSM, Runnable, Cloneable {
 			});
 			t.start();
 			ta.start();
+			Message msg = new Message(Message.Types.RESOLVED);
+			msg.setToId(receiver.getId());
+			dispatcher.addMessage(msg);
 		} catch (IOException e) {
-			e.printStackTrace();
+			//e.printStackTrace();
+			System.out.println("Server unavailable!");
 		}
 	}
 	@Override

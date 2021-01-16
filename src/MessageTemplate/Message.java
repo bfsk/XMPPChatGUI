@@ -23,16 +23,23 @@ public class Message implements IMessage, Cloneable {
         public static int ROOM_LIST_REQUEST = 4;
         public static int ROOM_LIST_RESPONSE = 5;
 
+        public static int JOIN_ROOM_REQUEST = 55;
+        public static int JOIN_ROOM_RESPONSE = 56;
+
+        public static int LEAVE_ROOM_REQUEST = 65;
+        public static int LEAVE_ROOM_RESPONSE = 66;
+
         public static int USERS_LIST_REQUEST = 6;
         public static int USERS_LIST_RESPONSE = 7;
 
-        public static int INCOMING_MSG = 8;
-        public static int OUTGOING_MSG = 9;
+        public static int MSG_TO_SERVER = 8;
+        public static int MSG_TO_CLIENT = 9;
 
         public static int DELETE_ACCOUNT_REQUEST = 200;
         public static int DELETE_ACCOUNT_RESPONSE = 201;
 
         public static int RESOLVE_DOMAIN_NAME = 300;
+        public static int RESOLVED = 301;
         public static int ERROR = 400;
     }
     public static class Params{
@@ -45,6 +52,7 @@ public class Message implements IMessage, Cloneable {
         public static String ROOM_LIST = "room_list";
         public static String MSG = "message";
         public static String CONNECTION_RESPONSE = "response";
+        public static String ROOM = "room";
     }
     private int messageId;
     private int toId = 5; //TCP machine ID

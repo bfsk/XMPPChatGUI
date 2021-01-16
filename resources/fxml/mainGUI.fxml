@@ -6,10 +6,10 @@
 
 <GridPane alignment="center" hgap="10" vgap="10" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.MainGUIController">
    <rowConstraints>
+      <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="BOTTOM" vgrow="SOMETIMES" />
       <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS" />
       <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS" />
-      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS" />
-      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS" />
+      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
    </rowConstraints>
    <columnConstraints>
       <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
@@ -18,22 +18,37 @@
    </columnConstraints>
    <children>
       <ScrollPane hbarPolicy="NEVER" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.rowSpan="2" GridPane.vgrow="ALWAYS">
-        <content>
-          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="200.0" prefWidth="200.0" />
-        </content>
+         <content>
+            <ListView fx:id="joinedRoomsList" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" />
+         </content>
       </ScrollPane>
       <ScrollPane hbarPolicy="NEVER" prefHeight="200.0" prefWidth="200.0" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.rowSpan="2" GridPane.vgrow="ALWAYS">
          <content>
-            <ListView fx:id="roomList" prefHeight="200.0" prefWidth="200.0" />
+            <ListView fx:id="roomList" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" />
          </content>
       </ScrollPane>
-      <Button mnemonicParsing="false" onAction="#test" text="Button" GridPane.columnIndex="2" GridPane.rowIndex="3" />
       <VBox prefHeight="200.0" prefWidth="100.0">
          <children>
             <Label text="All rooms" />
             <Button mnemonicParsing="false" onAction="#refreshRooms" text="Refresh" />
          </children>
       </VBox>
+      <Label text="Joined rooms" GridPane.columnIndex="1" />
+      <TextArea fx:id="chatBox" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="1" GridPane.rowSpan="2" />
+      <VBox prefHeight="200.0" prefWidth="100.0" GridPane.columnIndex="2">
+         <children>
+            <Label text="Chat:" />
+            <Label text="Room name" />
+         </children>
+      </VBox>
+      <HBox prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="3">
+         <children>
+            <TextField fx:id="message" />
+            <Button mnemonicParsing="false" onAction="#sendMsg" text="Send" />
+         </children>
+      </HBox>
+      <Button mnemonicParsing="false" onAction="#joinRoom" text="Join room" GridPane.rowIndex="3" />
+      <Button mnemonicParsing="false" onAction="#leaveRoom" text="Leave room" GridPane.columnIndex="1" GridPane.rowIndex="3" />
 
    </children>
    <padding>
