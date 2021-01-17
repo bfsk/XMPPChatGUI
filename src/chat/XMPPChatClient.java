@@ -13,7 +13,10 @@ public class XMPPChatClient extends FSM implements IFSM {
     private final int READY_TO_CONNECT = 1;
     private final int CONNECTING = 2;
     private final int CONNECTED = 3;
+    private final int ACCESSING = 4;
     private ArrayList<String> joinedRooms = new ArrayList<>();
+    private String username = "";
+    private String password = "";
     public void setController(IController controller){
         this.controller = controller;
     }
@@ -26,11 +29,15 @@ public class XMPPChatClient extends FSM implements IFSM {
         addTransition(IDLE, new Message(Message.Types.RESOLVE_DOMAIN_NAME), "resolveDomain");
         addTransition(IDLE, new Message(Message.Types.RESOLVED), "goReadyToConnect");
 
+        addTransition(CONNECTING, new Message(Message.Types.SERVER_REACHABLE), "reachable");
+
         addTransition(READY_TO_CONNECT, new Message(Message.Types.REGISTER), "registerOnServer");
         addTransition(READY_TO_CONNECT, new Message(Message.Types.LOGIN), "loginOnServer");
 
-        addTransition(CONNECTING, new Message(Message.Types.REGISTER_RESPONSE), "connectionResponse");
-        addTransition(CONNECTING, new Message(Message.Types.LOGIN_RESPONSE), "connectionResponse");
+
+
+        addTransition(ACCESSING, new Message(Message.Types.REGISTER_RESPONSE), "connectionResponse");
+        addTransition(ACCESSING, new Message(Message.Types.LOGIN_RESPONSE), "connectionResponse");
 
         addTransition(CONNECTED, new Message(Message.Types.ROOM_LIST_REQUEST), "requestRoomList");
         addTransition(CONNECTED, new Message(Message.Types.ROOM_LIST_RESPONSE), "roomListResponse");
@@ -44,35 +51,60 @@ public class XMPPChatClient extends FSM implements IFSM {
         addTransition(CONNECTED, new Message(Message.Types.MSG_TO_SERVER), "msgToServer");
         addTransition(CONNECTED, new Message(Message.Types.MSG_TO_CLIENT), "msgFromServer");
 
+        addTransition(CONNECTED, new Message(Message.Types.USERS_LIST_REQUEST), "usersListRequest");
+        addTransition(CONNECTED, new Message(Message.Types.USERS_LIST_RESPONSE), "usersListResponse");
+
+        addTransition(CONNECTED, new Message(Message.Types.DELETE_ACCOUNT_REQUEST), "deleteAccRequest");
+        addTransition(CONNECTED, new Message(Message.Types.DELETE_ACCOUNT_RESPONSE), "deleteAccResponse");
     }
     public void resolveDomain(IMessage message){
         Message msg = (Message)message;
-        System.out.println("Resolving: " + msg.getParam(Message.Params.DOMAIN));
-        //resolve domain, implement this please!
-        Message tcpMSG = new Message(5555);
-        tcpMSG.addParam(Message.Params.IP, "127.0.0.1");
-        sendMessage(tcpMSG);
 
+        SERVER_IP = msg.getParam(Message.Params.IP);
+        SERVER_PORT = msg.getParam(Message.Params.PORT);
         //setState(READY_TO_CONNECT);
-
+        Message result = new Message(Message.Types.RESOLVED);
+        result.addParam(Message.Params.IP, SERVER_IP);
+        result.addParam(Message.Params.PORT, SERVER_PORT);
+        result.setToId(0);
+        sendMessage(result);
     }
     public void goReadyToConnect(IMessage message){
-        System.out.println("Resolved!");
-        setState(READY_TO_CONNECT);
+        Message msg = (Message) message;
+        SERVER_IP = msg.getParam(Message.Params.IP);
+        SERVER_PORT = msg.getParam(Message.Params.PORT);
+
+        Message tcpMSG = new Message(5555);
+        tcpMSG.addParam(Message.Params.IP, SERVER_IP);
+        tcpMSG.addParam(Message.Params.PORT, SERVER_PORT);
+        sendMessage(tcpMSG);
+        setState(CONNECTING);
+    }
+    public void reachable(IMessage message){
+        Message msg = (Message) message;
+        if(msg.getParam(Message.Params.MSG).contains("ok")) {
+            setState(READY_TO_CONNECT);
+            controller.setElements(false);
+        }else{
+            controller.displayAlert(msg.getParam(Message.Params.MSG));
+            setState(IDLE);
+        }
     }
     public void registerOnServer(IMessage message){
         Message msg = (Message)message;
         msg.setToId(5);
         System.out.println("Registering..." + msg.getMessageId());
         sendMessage(msg);
-        setState(CONNECTING);
+        username = msg.getParam(Message.Params.USERNAME);
+        setState(ACCESSING);
     }
     public void loginOnServer(IMessage message){
         Message msg = (Message)message;
         msg.setToId(5);
         System.out.println("Loging in...SEND");
         sendMessage(msg);
-        setState(CONNECTING);
+        username = msg.getParam(Message.Params.USERNAME);
+        setState(ACCESSING);
     }
     public void connectionResponse(IMessage message){
         Message msg = (Message) message;
@@ -122,7 +154,7 @@ public class XMPPChatClient extends FSM implements IFSM {
         System.out.println("Got response for leave!");
         Message msg = (Message) message;
         if(msg.getParam(Message.Params.MSG).contains("ok")){
-            joinedRooms.remove(msg.getParam(Message.Params.MSG).replace("ok|",""));
+            joinedRooms.remove(msg.getParam(Message.Params.ROOM));
             controller.updateJoinedRoomList(joinedRooms);
         }
     }
@@ -135,10 +167,46 @@ public class XMPPChatClient extends FSM implements IFSM {
         Message msg = (Message) message;
         controller.incomingMessage(msg.getParam(Message.Params.ROOM), msg.getParam(Message.Params.MSG));
     }
-    static int SERVER_PORT = 9999;
-    static String SERVER_URL = "";
+    public void usersListRequest(IMessage message){
+        System.out.println("Fetching users list!");
+        Message req = (Message) message;
+        req.setToId(5);
+        sendMessage(req);
+    }
+    public void usersListResponse(IMessage message){
+        Message msg = (Message) message;
+        if(msg.getParam(Message.Params.MSG).contains("ok")){
+            System.out.println((ArrayList)msg.getParam(Message.Params.USERS_LIST, true));
+            controller.updatePeopleList(msg.getParam(Message.Params.ROOM), (ArrayList)msg.getParam(Message.Params.USERS_LIST, true));
+        }
+    }
+    public void deleteAccRequest(IMessage message){
+        System.out.println("Deleting acc...");
+        Message req = (Message) message;
+        req.setToId(5);
+        sendMessage(req);
+    }
+    public void deleteAccResponse(IMessage message){
+        Message msg = (Message) message;
+        if(msg.getParam(Message.Params.MSG).contains("ok")){
+            controller.goToLogin();
+            setState(IDLE);
+        }else{
+            controller.displayAlert(msg.getParam(Message.Params.MSG));
+        }
+    }
+    static String SERVER_PORT = "9999";
     static String SERVER_IP = "";
 
+    public void resolve(String domainName){
+        String ip = domainName.split(":")[0];
+        String port = domainName.split(":")[1];
+        Message msg = new Message(Message.Types.RESOLVE_DOMAIN_NAME);
+        msg.addParam(Message.Params.IP, ip);
+        msg.addParam(Message.Params.PORT, port);
+        msg.setToId(0);
+        getDispatcher().addMessage(msg);
+    }
     public void refreshRoomList(){
         Message msg = new Message(Message.Types.ROOM_LIST_REQUEST);
         msg.setToId(0);
@@ -168,7 +236,7 @@ public class XMPPChatClient extends FSM implements IFSM {
     public void leaveRoom(String room){
         Message tempMsg = new Message(Message.Types.LEAVE_ROOM_REQUEST);
         tempMsg.setToId(0);
-        tempMsg.addParam(Message.Params.MSG, room);
+        tempMsg.addParam(Message.Params.ROOM, room);
         tempMsg.addParam(Message.Params.TOKEN, TOKEN);
         getDispatcher().addMessage(tempMsg);
     }
@@ -180,7 +248,23 @@ public class XMPPChatClient extends FSM implements IFSM {
         tempMsg.addParam(Message.Params.MSG, msg);
         getDispatcher().addMessage(tempMsg);
     }
+    public void updateUsers(String room){
+        Message request = new Message(Message.Types.USERS_LIST_REQUEST);
+        request.setToId(0);
+        request.addParam(Message.Params.TOKEN, TOKEN);
+        request.addParam(Message.Params.ROOM, room);
+        getDispatcher().addMessage(request);
+    }
     public void stopAll(){
         getDispatcher().stop();
+    }
+    public String getUsername(){
+        return username;
+    }
+    public void deleteAccount(){
+        Message msg = new Message(Message.Types.DELETE_ACCOUNT_REQUEST);
+        msg.setToId(0);
+        msg.addParam(Message.Params.TOKEN, TOKEN);
+        getDispatcher().addMessage(msg);
     }
 }

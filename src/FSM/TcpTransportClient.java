@@ -100,6 +100,7 @@ public class TcpTransportClient implements IFSM, Runnable, Cloneable {
 	public void addMessage(IMessage message) {
 		if (message.getMessageId() == 5555){
 			serverAddress = ((Message)(message)).getParam(Message.Params.IP);
+			serverPort = Integer.parseInt(((Message)(message)).getParam(Message.Params.PORT));
 			runClient();
 		}else
 			messageQueue.add(message);
@@ -125,12 +126,16 @@ public class TcpTransportClient implements IFSM, Runnable, Cloneable {
 			});
 			t.start();
 			ta.start();
-			Message msg = new Message(Message.Types.RESOLVED);
+			Message msg = new Message(Message.Types.SERVER_REACHABLE);
 			msg.setToId(receiver.getId());
+			msg.addParam(Message.Params.MSG, "ok");
 			dispatcher.addMessage(msg);
 		} catch (IOException e) {
 			//e.printStackTrace();
-			System.out.println("Server unavailable!");
+			Message msg = new Message(Message.Types.SERVER_REACHABLE);
+			msg.setToId(receiver.getId());
+			msg.addParam(Message.Params.MSG, "Server unavailable!");
+			dispatcher.addMessage(msg);
 		}
 	}
 	@Override

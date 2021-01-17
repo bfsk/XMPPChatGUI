@@ -14,4 +14,8 @@ public interface IController {
     public void updateRoomList(ArrayList<String> list);
     public void updateJoinedRoomList(ArrayList<String> list);
     public void incomingMessage(String room, String msg);
+    public void updatePeopleList(String room, ArrayList<String> list);
+    public void setElements(boolean x);
+    public void displayAlert(String msg);
+    public void goToLogin();
 }

@@ -35,6 +35,8 @@ public class XMPPChatServer extends FSM implements IFSM {
         addTransition(READY, new Message(Message.Types.LEAVE_ROOM_REQUEST), "leaveRoom");
         addTransition(READY, new Message(Message.Types.MSG_TO_SERVER), "incomingMsg");
         addTransition(READY, new Message(Message.Types.SOCKET_CLOSE), "socketFail");
+        addTransition(READY, new Message(Message.Types.USERS_LIST_REQUEST), "returnUsersList");
+        addTransition(READY, new Message(Message.Types.DELETE_ACCOUNT_REQUEST), "deleteAcc");
     }
 
     public void onClientRegister(IMessage message){
@@ -119,7 +121,6 @@ public class XMPPChatServer extends FSM implements IFSM {
             response.addParam(Message.Params.ROOM_LIST, room_list);
             response.addParam(Message.Params.MSG, "ok");
             addresses.put(tokens.get(token), msg.getFromAddress());
-            System.out.println("RETURN ROOM LIST " + addresses);
         }else{
             response.addParam(Message.Params.MSG, "fail");
             System.out.println("NOT AUTHENTICATED!");
@@ -174,7 +175,7 @@ public class XMPPChatServer extends FSM implements IFSM {
         String token = ((Message) message).getParam(Message.Params.TOKEN);
         Message response = new Message(Message.Types.LEAVE_ROOM_RESPONSE);
         response.setToAddress(msg.getFromAddress());
-        String targetRoom = msg.getParam(Message.Params.MSG);
+        String targetRoom = msg.getParam(Message.Params.ROOM);
 
         boolean ok = false;
         if(token != null){
@@ -182,8 +183,14 @@ public class XMPPChatServer extends FSM implements IFSM {
             if(usersInRoom != null){
                 if(usersInRoom.contains(tokens.get(token))){
                     usersInRoom.remove(tokens.get(token));
-                    response.addParam(Message.Params.MSG, "ok|"+targetRoom);
-                    sendToAllUsersInRoom(targetRoom, "server", "User " + tokens.get(token) + " left the room!");
+                    response.addParam(Message.Params.MSG, "ok");
+                    response.addParam(Message.Params.ROOM, targetRoom);
+                    if(usersInRoom.size() == 0){
+                        rooms.remove(targetRoom);
+                    }else {
+                        sendToAllUsersInRoom(targetRoom, "server", "User " + tokens.get(token) + " left the room!");
+                    }
+
                     ok = true;
                 }
             }
@@ -214,6 +221,56 @@ public class XMPPChatServer extends FSM implements IFSM {
             removeUser(fromAddr);
         }
     }
+    public void returnUsersList(IMessage message){
+        System.out.println("Users list requested!");
+        Message msg = (Message) message;
+        String token = ((Message) message).getParam(Message.Params.TOKEN);
+        String targetRoom = ((Message) message).getParam(Message.Params.ROOM);
+        Message response = new Message(Message.Types.USERS_LIST_RESPONSE);
+        response.setToAddress(msg.getFromAddress());
+
+        //check token for login
+        if (tokens.get(token) != null){
+            ArrayList<String> users_list = new ArrayList<>();
+            for(Map.Entry<String, ArrayList<String>> entry: rooms.entrySet())
+                if(targetRoom.equals(entry.getKey())) {
+                    users_list = entry.getValue();
+                    break;
+                }
+
+            response.addParam(Message.Params.USERS_LIST, users_list);
+            response.addParam(Message.Params.MSG, "ok");
+            response.addParam(Message.Params.ROOM, targetRoom);
+            addresses.put(tokens.get(token), msg.getFromAddress());
+        }else{
+            response.addParam(Message.Params.MSG, "fail");
+            System.out.println("NOT AUTHENTICATED!");
+        }
+
+        sendMessage(response);
+    }
+    public void deleteAcc(IMessage message){
+        System.out.println("Delete account requested!");
+        Message msg = (Message) message;
+        String token = ((Message) message).getParam(Message.Params.TOKEN);
+        Message response = new Message(Message.Types.DELETE_ACCOUNT_RESPONSE);
+        response.setToAddress(msg.getFromAddress());
+
+        String username = tokens.get(token);
+
+        //check token for login
+        if (username != null){
+            response.addParam(Message.Params.MSG, "ok");
+            removeUser(msg.getFromAddress());
+            users.remove(username);
+        }else{
+            response.addParam(Message.Params.MSG, "fail");
+            System.out.println("NOT AUTHENTICATED!");
+        }
+
+        sendMessage(response);
+    }
+
     static int SERVER_PORT = 9999;
     public static void main(String[] args) throws Exception{
 	// write your code here
@@ -243,6 +300,7 @@ public class XMPPChatServer extends FSM implements IFSM {
         if(usersInRoom != null){
             for(String user: usersInRoom) {
                 Message msg = new Message(Message.Types.MSG_TO_CLIENT);
+                msg.addParam(Message.Params.ROOM, roomName);
                 msg.addParam(Message.Params.MSG, from + ": " + message);
                 msg.setToAddress(addresses.get(user));
                 sendMessage(msg);
@@ -268,12 +326,16 @@ public class XMPPChatServer extends FSM implements IFSM {
                 }
             }
             tokens.remove(tkn);
+            ArrayList<String> roomsToRemove = new ArrayList<>();
             for(Map.Entry<String, ArrayList<String>> entry: rooms.entrySet()) {
                 if (entry.getValue().contains(user)) {
                     entry.getValue().remove(user);
+                    if(entry.getValue().size() == 0) roomsToRemove.add(entry.getKey());
                     sendToAllUsersInRoom(entry.getKey(), "server", "User " + user + " left room!");
                 }
             }
+            for(String rm: roomsToRemove)
+                rooms.remove(rm);
         }
 
     }

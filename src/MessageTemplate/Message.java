@@ -37,15 +37,17 @@ public class Message implements IMessage, Cloneable {
         public static int RESOLVE_DOMAIN_NAME = 300;
         public static int RESOLVED = 301;
         public static int SOCKET_CLOSE = 400;
+        public static int SERVER_REACHABLE = 303;
     }
     public static class Params{
         public static String DOMAIN = "domain_name";
         public static String IP = "ip_addr";
-        public static String NICKNAME = "nickname";
+        public static String PORT = "port";
         public static String USERNAME = "username";
         public static String PASSWORD = "password";
         public static String TOKEN = "token";
         public static String ROOM_LIST = "room_list";
+        public static String USERS_LIST = "usr_list";
         public static String MSG = "message";
         public static String CONNECTION_RESPONSE = "response";
         public static String ROOM = "room";

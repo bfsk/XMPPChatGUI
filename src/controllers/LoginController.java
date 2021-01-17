@@ -11,6 +11,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Screen;
@@ -20,11 +21,13 @@ import java.util.ArrayList;
 
 public class LoginController implements IController {
     public TextField usernameBox;
-    public TextField nicknameBox;
+    public TextField domainNameBox;
     public TextField passwordBox;
-
+    public Button regBtn;
+    public Button loginBtn;
     XMPPChatClient client;
     Dispatcher dis;
+
     @Override
     public void setClient(XMPPChatClient client){
         this.client = client;
@@ -39,7 +42,18 @@ public class LoginController implements IController {
 
     @FXML
     public void initialize(){
+        setElements(true);
+        domainNameBox.setText("127.0.0.1:9999");
+    }
 
+    @Override
+    public void setElements(boolean state){
+        Platform.runLater(()->{
+            loginBtn.setDisable(state);
+            regBtn.setDisable(state);
+            usernameBox.setDisable(state);
+            passwordBox.setDisable(state);
+        });
     }
     @Override
     public IController getController() {
@@ -66,6 +80,10 @@ public class LoginController implements IController {
             }
         });
     }
+    @FXML
+    public void onEnter(ActionEvent ae){
+        login(null);
+    }
     @Override
     public void loginFail(String msg){
         displayAlert(msg);
@@ -77,6 +95,11 @@ public class LoginController implements IController {
         client.register(usernameBox.getText(), passwordBox.getText());
     }
 
+    public void checkServer(ActionEvent actionEvent) {
+        client.resolve(domainNameBox.getText());
+    }
+
+    @Override
     public void displayAlert(String msg){
         Platform.runLater(() ->{
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -89,5 +112,12 @@ public class LoginController implements IController {
     }
     @Override
     public void updateJoinedRoomList(ArrayList<String> l){}
+    @Override
     public void incomingMessage(String room, String msg){}
+    @Override
+    public void updatePeopleList(String room, ArrayList<String> list){}
+    @Override
+    public void goToLogin(){
+
+    }
 }

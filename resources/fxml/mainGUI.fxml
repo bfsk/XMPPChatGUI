@@ -7,48 +7,63 @@
 <GridPane alignment="center" hgap="10" vgap="10" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.MainGUIController">
    <rowConstraints>
       <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="BOTTOM" vgrow="SOMETIMES" />
+      <RowConstraints minHeight="10.0" valignment="BOTTOM" vgrow="SOMETIMES" />
       <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS" />
       <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS" />
       <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
    </rowConstraints>
    <columnConstraints>
+      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
+      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
       <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
-      <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
-      <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
    </columnConstraints>
    <children>
-      <ScrollPane hbarPolicy="NEVER" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.rowSpan="2" GridPane.vgrow="ALWAYS">
+      <ScrollPane hbarPolicy="NEVER" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.rowSpan="2" GridPane.vgrow="ALWAYS">
          <content>
             <ListView fx:id="joinedRoomsList" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" />
          </content>
       </ScrollPane>
-      <ScrollPane hbarPolicy="NEVER" prefHeight="200.0" prefWidth="200.0" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.rowSpan="2" GridPane.vgrow="ALWAYS">
+      <ScrollPane hbarPolicy="NEVER" prefHeight="200.0" prefWidth="100.0" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.rowSpan="2" GridPane.vgrow="ALWAYS">
          <content>
             <ListView fx:id="roomList" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" />
          </content>
       </ScrollPane>
-      <VBox prefHeight="200.0" prefWidth="100.0">
+      <VBox maxHeight="-Infinity" GridPane.rowIndex="1" GridPane.vgrow="NEVER">
          <children>
             <Label text="All rooms" />
             <Button mnemonicParsing="false" onAction="#refreshRooms" text="Refresh" />
          </children>
       </VBox>
-      <Label text="Joined rooms" GridPane.columnIndex="1" />
-      <TextArea fx:id="chatBox" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="1" GridPane.rowSpan="2" />
-      <VBox prefHeight="200.0" prefWidth="100.0" GridPane.columnIndex="2">
+      <Label text="Joined rooms" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+      <TextArea fx:id="chatBox" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="2" GridPane.rowSpan="2" />
+      <VBox prefWidth="100.0" GridPane.columnIndex="2" GridPane.rowIndex="1">
          <children>
             <Label text="Chat:" />
-            <Label text="Room name" />
+            <Label fx:id="roomNameLabel" text="Room name" />
          </children>
       </VBox>
-      <HBox prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="3">
+      <HBox prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="4">
          <children>
-            <TextField fx:id="message" />
+            <TextField fx:id="message" onAction="#onEnter" />
             <Button mnemonicParsing="false" onAction="#sendMsg" text="Send" />
          </children>
       </HBox>
-      <Button mnemonicParsing="false" onAction="#joinRoom" text="Join room" GridPane.rowIndex="3" />
-      <Button mnemonicParsing="false" onAction="#leaveRoom" text="Leave room" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+      <HBox GridPane.rowIndex="4">
+         <children>
+            <TextField fx:id="newRoomBox" maxWidth="100.0" minWidth="100.0" prefWidth="100.0" />
+            <Button mnemonicParsing="false" onAction="#joinRoom" text="Join room" />
+         </children>
+      </HBox>
+      <Button mnemonicParsing="false" onAction="#leaveRoom" text="Leave room" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+      <Label text="Active clients" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+      <ScrollPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="3" GridPane.rowIndex="2" GridPane.rowSpan="2">
+         <content>
+            <ListView fx:id="pplList" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" />
+         </content>
+      </ScrollPane>
+      <Label fx:id="userMsg" text="Label" GridPane.columnSpan="4" GridPane.halignment="CENTER" />
+      <Button fx:id="deleteAccBtn" mnemonicParsing="false" onAction="#deleteAcc" text="Delete account" GridPane.columnIndex="3" GridPane.rowIndex="4" />
 
    </children>
    <padding>

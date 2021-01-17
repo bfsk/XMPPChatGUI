@@ -32,13 +32,6 @@ public class LaunchClientGUI extends Application {
         disp.addFSM(tcpFSM);
         disp.start();
 
-        Message msg = new Message(Message.Types.RESOLVE_DOMAIN_NAME);
-        msg.addParam(Message.Params.DOMAIN, "127.0.0.1");
-        msg.setToId(0);
-        disp.addMessage(msg);
-
-
-
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login.fxml"));
         Parent root = loader.load();
         ((LoginController)loader.getController()).setClient(clientFSM);
