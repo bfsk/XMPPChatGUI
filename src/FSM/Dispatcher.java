@@ -166,6 +166,9 @@ public class Dispatcher extends Frame implements Runnable {
 			}
 		}
 	}
-
+	@Override
+	public String toString(){
+		return fsmList.toString();
+	}
 	
 }

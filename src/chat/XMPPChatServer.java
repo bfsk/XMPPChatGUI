@@ -34,6 +34,7 @@ public class XMPPChatServer extends FSM implements IFSM {
         addTransition(READY, new Message(Message.Types.JOIN_ROOM_REQUEST), "joinRoom");
         addTransition(READY, new Message(Message.Types.LEAVE_ROOM_REQUEST), "leaveRoom");
         addTransition(READY, new Message(Message.Types.MSG_TO_SERVER), "incomingMsg");
+        addTransition(READY, new Message(Message.Types.SOCKET_CLOSE), "socketFail");
     }
 
     public void onClientRegister(IMessage message){
@@ -55,7 +56,7 @@ public class XMPPChatServer extends FSM implements IFSM {
             response.addParam(Message.Params.TOKEN, tkn);
             tokens.put(tkn, msg.getParam(Message.Params.USERNAME));
             addresses.put(msg.getParam(Message.Params.USERNAME), msg.getFromAddress());
-            System.out.println("Client " + msg.getParam(Message.Params.USERNAME) + " " + tkn +" registered!");
+            System.out.println("Client " + msg.getParam(Message.Params.USERNAME) + " registered!");
         }
         response.setToAddress(msg.getFromAddress());
         sendMessage(response);
@@ -64,7 +65,7 @@ public class XMPPChatServer extends FSM implements IFSM {
     public void onClientLogin(IMessage message){
         Message msg = (Message) message;
         Message response;
-
+        String tkn = "";
         if(users.get(msg.getParam(Message.Params.USERNAME)) == null){
             response = new Message(Message.Types.LOGIN_RESPONSE);
             response.addParam(Message.Params.CONNECTION_RESPONSE, "fail");
@@ -74,7 +75,7 @@ public class XMPPChatServer extends FSM implements IFSM {
                 response = new Message(Message.Types.LOGIN_RESPONSE);
                 response.addParam(Message.Params.CONNECTION_RESPONSE, "ok");
                 response.addParam(Message.Params.MSG, "Welcome!");
-                String tkn = "";
+
                 tkn = randomString();
                 response.addParam(Message.Params.TOKEN, tkn);
 
@@ -88,7 +89,9 @@ public class XMPPChatServer extends FSM implements IFSM {
                     tokens.remove(prevTkn);
                 }
                 tokens.put(tkn, msg.getParam(Message.Params.USERNAME));
+
                 addresses.put(msg.getParam(Message.Params.USERNAME), msg.getFromAddress());
+                System.out.println("ON CLIENT LOGIN " + addresses);
             }else{
                 response = new Message(Message.Types.LOGIN_RESPONSE);
                 response.addParam(Message.Params.CONNECTION_RESPONSE, "fail");
@@ -98,6 +101,7 @@ public class XMPPChatServer extends FSM implements IFSM {
         response.setToAddress(msg.getFromAddress());
         sendMessage(response);
         System.out.println("Client " + msg.getParam(Message.Params.USERNAME) + " logged in!");
+
     }
     public void returnRoomList(IMessage message){
         System.out.println("Room list requested!");
@@ -114,7 +118,8 @@ public class XMPPChatServer extends FSM implements IFSM {
 
             response.addParam(Message.Params.ROOM_LIST, room_list);
             response.addParam(Message.Params.MSG, "ok");
-            addresses.put(msg.getParam(Message.Params.USERNAME), msg.getFromAddress());
+            addresses.put(tokens.get(token), msg.getFromAddress());
+            System.out.println("RETURN ROOM LIST " + addresses);
         }else{
             response.addParam(Message.Params.MSG, "fail");
             System.out.println("NOT AUTHENTICATED!");
@@ -128,8 +133,11 @@ public class XMPPChatServer extends FSM implements IFSM {
         String token = ((Message) message).getParam(Message.Params.TOKEN);
         Message response = new Message(Message.Types.JOIN_ROOM_RESPONSE);
         response.setToAddress(msg.getFromAddress());
-        String targetRoom = msg.getParam(Message.Params.MSG);
+        String targetRoom = msg.getParam(Message.Params.ROOM);
         if (tokens.get(token) != null){
+            if(rooms.get(targetRoom) == null){
+                rooms.put(targetRoom, new ArrayList<String>());
+            }
             ArrayList<String> userList = null;
             for(Map.Entry<String, ArrayList<String>> entry: rooms.entrySet())
                 if(entry.getKey().equals(targetRoom)) userList = entry.getValue();
@@ -138,20 +146,22 @@ public class XMPPChatServer extends FSM implements IFSM {
                 userList = new ArrayList<>();
                 userList.add(tokens.get(token));
                 rooms.put(targetRoom, userList);
-                response.addParam(Message.Params.MSG, "ok|" + targetRoom);
+                response.addParam(Message.Params.MSG, "ok");
+                response.addParam(Message.Params.ROOM, targetRoom);
             }else{
                 if(userList.contains(tokens.get(token))){
                     response.addParam(Message.Params.MSG, "fail");
                 }else{
                     userList.add(tokens.get(token));
-                    response.addParam(Message.Params.MSG, "ok|" + targetRoom);
+                    response.addParam(Message.Params.MSG, "ok");
+                    response.addParam(Message.Params.ROOM, targetRoom);
                 }
 
             }
             sendMessage(response);
             System.out.println("sending response for join room! " + tokens.get(token));
             sendToAllUsersInRoom(targetRoom, "server", "User " + tokens.get(token) + " joined room!");
-            addresses.put(msg.getParam(Message.Params.USERNAME), msg.getFromAddress());
+            addresses.put(tokens.get(token), msg.getFromAddress());
         }else{
             response.addParam(Message.Params.MSG, "fail");
             sendMessage(response);
@@ -196,6 +206,14 @@ public class XMPPChatServer extends FSM implements IFSM {
             }
         }
     }
+    public void socketFail(IMessage message){
+        Message msg = (Message) message;
+        if(msg.getFromAddress().equals("socket-service")){
+            System.out.println("leaving");
+            String fromAddr = msg.getParam(Message.Params.MSG);
+            removeUser(fromAddr);
+        }
+    }
     static int SERVER_PORT = 9999;
     public static void main(String[] args) throws Exception{
 	// write your code here
@@ -230,5 +248,33 @@ public class XMPPChatServer extends FSM implements IFSM {
                 sendMessage(msg);
             }
         }
+    }
+
+    public void removeUser(String addr){
+        String user = "";
+        for(Map.Entry<String, String> entry: addresses.entrySet()) {
+            if (entry.getValue().equals(addr)) {
+                user = entry.getKey();
+                break;
+            }
+        }
+        if (user!= ""){
+            addresses.remove(user);
+            String tkn = "";
+            for(Map.Entry<String, String> entry: tokens.entrySet()) {
+                if (entry.getValue().equals(user)) {
+                    tkn = entry.getKey();
+                    break;
+                }
+            }
+            tokens.remove(tkn);
+            for(Map.Entry<String, ArrayList<String>> entry: rooms.entrySet()) {
+                if (entry.getValue().contains(user)) {
+                    entry.getValue().remove(user);
+                    sendToAllUsersInRoom(entry.getKey(), "server", "User " + user + " left room!");
+                }
+            }
+        }
+
     }
 }

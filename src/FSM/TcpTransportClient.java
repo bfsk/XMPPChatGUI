@@ -60,8 +60,13 @@ public class TcpTransportClient implements IFSM, Runnable, Cloneable {
 	}
 
 	@Override
-	public void stop() {
+	public void stop(){
 		//
+		try{
+			if(client != null) client.close();
+		}catch (Exception e){
+
+		}
 		runner.interrupt();
 	}
 

@@ -38,4 +38,8 @@ public class Transition {
 	public String getMethodName() {
 		return methodName;
 	}
+	@Override
+	public String toString(){
+		return "from " + state + " on msg " + message.getMessageId();
+	}
 }

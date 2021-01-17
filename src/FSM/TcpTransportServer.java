@@ -162,41 +162,54 @@ public class TcpTransportServer implements IFSM, Runnable, Cloneable {
 			BufferedReader fromClient =
 					new BufferedReader(
 							new InputStreamReader(connectionSocket.getInputStream()));
+
 			while (true){
 				String recString = "";
+				boolean full = false;
 				try{
 					int rec;
 					recString = "";
+
 					while((rec = fromClient.read()) > 0){
 
-						if((char)rec == (char)(0))
+						if((char)rec == (char)(0)) {
+
 							break;
-						else{
+						}else{
 							recString += (char)rec;
 						}
 					}
-
+					full = true;
 				}catch(Exception e){
 					break;
 				}
+				if (recString.length() != 0 && full){
+					InetSocketAddress sockaddr = (InetSocketAddress)connectionSocket.getRemoteSocketAddress();
 
-				InetSocketAddress sockaddr = (InetSocketAddress)connectionSocket.getRemoteSocketAddress();
+					String fromAddress = sockaddr.getAddress().toString().replace("/","");
+					fromAddress += ":" + sockaddr.getPort();
+					IMessage receivedMsg = new Message();
+					byte[] bytes = recString.getBytes();
+					receivedMsg.parseTransportMessage(bytes, bytes.length);
+					receivedMsg.setFromId(id);
+					receivedMsg.setToId(receiver.getId());
+					receivedMsg.setFromAddress(fromAddress);
+					dispatcher.addMessage(receivedMsg);
+				}else{
+					break;
+				}
 
-				String fromAddress = sockaddr.getAddress().toString().replace("/","");
-				fromAddress += ":" + sockaddr.getPort();
-				IMessage receivedMsg = new Message();
-				byte[] bytes = recString.getBytes();
-				receivedMsg.parseTransportMessage(bytes, bytes.length);
-				receivedMsg.setFromId(id);
-				receivedMsg.setToId(receiver.getId());
-				receivedMsg.setFromAddress(fromAddress);
-				dispatcher.addMessage(receivedMsg);
-				System.out.println("GOT: " + receivedMsg.getMessageId());
 				Thread.sleep(1);
 			}
 
+			String from = connectionSocket.getRemoteSocketAddress().toString().replace("/","");
 			connectionSocket.close();
 			connectedSockets.remove(connectionSocket);
+			Message left = new Message(Message.Types.SOCKET_CLOSE);
+			left.setFromAddress("socket-service");
+			left.addParam(Message.Params.MSG, from);
+			left.setToId(receiver.getId());
+			dispatcher.addMessage(left);
 			System.out.println("ostalo aktivnih soketa " + connectedSockets.size());
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -16,10 +16,6 @@ public class Message implements IMessage, Cloneable {
         public static int LOGIN = -4;
         public static int LOGIN_RESPONSE = 1;
 
-        public static int CHECK_IN_REQUEST = 2;
-        public static int CHECK_OUT_REQUEST = 3;
-        public static int CHECK_IN_OUT_RESPONSE = 4;
-
         public static int ROOM_LIST_REQUEST = 4;
         public static int ROOM_LIST_RESPONSE = 5;
 
@@ -40,7 +36,7 @@ public class Message implements IMessage, Cloneable {
 
         public static int RESOLVE_DOMAIN_NAME = 300;
         public static int RESOLVED = 301;
-        public static int ERROR = 400;
+        public static int SOCKET_CLOSE = 400;
     }
     public static class Params{
         public static String DOMAIN = "domain_name";

@@ -109,13 +109,13 @@ public abstract class FSM implements Runnable, IFSM {
 	 */
 	@Override
 	public void run() {
+		//System.out.println("Started " + id);
 		while (running) {
 			if (messageQueue.size() != 0) {
 				IMessage message = messageQueue.poll();
 				Transition transition = getTransition(message);
 				if (transition != null) {
 					try {
-
 						Method m = this.getClass().getDeclaredMethod(transition.getMethodName(), new Class[] { IMessage.class });
 						m.setAccessible(true);
 						m.invoke(this, new Object[] { message });
