@@ -1,8 +1,5 @@
 package FSM;
 
-import FSM.pa.SequenceChart;
-
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -14,13 +11,11 @@ import java.util.Queue;
  * @author Enio Kaljic, mr.el.-dipl.ing.el.<br>
  *         Odsjek za telekomunikacije, ETF Sarajevo
  */
-public class Dispatcher extends Frame implements Runnable {
+public class Dispatcher implements Runnable {
 	private ArrayList<IFSM> fsmList = new ArrayList<IFSM>();
 	Queue<IMessage> redcekanja = new LinkedList<IMessage>();
 	private Queue<IMessage> messageQueue = new LinkedList<IMessage>();
 	private boolean running;
-	private SequenceChart chart;
-	private boolean debugEnabled;
 
 	/**
 	 * Konstruktor klase
@@ -29,16 +24,6 @@ public class Dispatcher extends Frame implements Runnable {
 	 *            parametar koji sluzi za omogucavanje prikaza MSC dijagrama
 	 */
 	public Dispatcher(boolean debugEnabled) {
-		this.debugEnabled = debugEnabled;
-		if (debugEnabled) {
-			// Prikaz MSC dijagrama
-			chart = new SequenceChart();
-			add("Center", chart);
-			pack();
-			setTitle("FSM Library Protocol Analyzer - Sequence Chart");
-			setSize(800, 600);
-			setVisible(true);
-		}
 	}
 
 	/**
@@ -88,10 +73,6 @@ public class Dispatcher extends Frame implements Runnable {
 		fsm.setDispatcher(this);
 		// Dodavanje FSM-a u sistem
 		fsmList.add(fsm);
-		if (debugEnabled) {
-			// Dodavanje FSM-a na MSC dijagram
-			chart.addFSM(fsm);
-		}
 	}
 
 	/**
@@ -152,10 +133,6 @@ public class Dispatcher extends Frame implements Runnable {
 				if (fsm != null) {
 					// Spremanje poruke u red cekanja FSM-a
 					fsm.addMessage(message);
-					if (debugEnabled) {
-						// Prikaz poruke na MSC dijagramu
-						chart.addMessage(message);
-					}
 				}
 			}
 			// Pauziranje izvrsavanja na 1 us kako bi se smanjilo opterecenje CPU-a

@@ -149,6 +149,9 @@ public class MainGUIController implements IController {
             if(chatByRooms.get(room) != null){
                 chatByRooms.get(room).add(msg);
                 updateChatBox();
+                if(!selectedRoom.equals(room)){
+
+                }
             }
 
         });

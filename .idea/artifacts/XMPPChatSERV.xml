@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="XMPPChatSERV">
+    <output-path>$PROJECT_DIR$/out/artifacts/XMPPChatSERV</output-path>
+    <root id="archive" name="XMPPChatGUI.jar">
+      <element id="module-output" name="XMPPChatGUI" />
+      <element id="extracted-dir" path="$USER_HOME$/.jdks/javafx-sdk-11.0.2/lib/src.zip" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
